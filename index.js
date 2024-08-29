@@ -15,14 +15,25 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       console.log(years);
 
-      let times =[];
+      let times = [];
       dataSet.forEach((el, index) => {
         times[index] = new Date(0, 0, 1, 0, parseInt(el.Time.substring(0, 2)), parseInt(el.Time.substring(3)));
+      });
+
+      let dopings = [];
+      dataSet.forEach((el, index) => {
+        if (el.Doping === "") {
+          dopings[index] = false;
+        } else {
+          dopings[index] = true;
+        }
       });
 
       const h = 600;
       const w = 900;
       const padding = 40;
+      const dopingColor = 'red';
+      const noDopingColor = 'yellow';
       
       const xScale = d3.scaleLinear()
         .domain([d3.min(years, (d) => d - 1), //-1 to keep it from overlapping the axes 
@@ -34,7 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
           d3.max(times, (d) => d)])
         .range([padding, h - padding]);
       
-      const svg = d3.select('body')
+      const svg = d3.select('#chart')
         .append('svg')
         .attr('height', h)
         .attr('width', w)
@@ -59,7 +70,19 @@ document.addEventListener("DOMContentLoaded", () => {
         .attr('data-yvalue', (d) => d)
         .attr('cy', (d) => yScale(d))
         .attr('r', '5');
-
+      
+      
+      circles
+        .data(dopings)
+        .attr('alleged-doping', (d) => d) // Not necessary but I wanted to associate this data with the circle elements
+        .attr('fill', (d) => {
+          if (d) {
+            return dopingColor;
+          } else {
+            return noDopingColor;
+          }
+        });
+      
       const xAxis = d3.axisBottom(xScale).tickFormat(d3.format('d'));
       const yAxis = d3.axisLeft(yScale).tickFormat(d3.timeFormat('%M:%S'));
 
@@ -74,6 +97,38 @@ document.addEventListener("DOMContentLoaded", () => {
         .attr('id', 'y-axis')
         .call(yAxis)
         .attr('color', 'black');
+
+      svg.append('rect')
+        .attr('width', 220)
+        .attr('height', 50)
+        .attr('x', w - 235)
+        .attr('y', h - 420)
+        .attr('fill', 'aqua')
+        .attr('rx', '10px')
+        .style('box-shadow', '10px 10px 5px 0px rgba(0, 0, 0, 0.5)');
+
+      svg.append('text')
+        .attr('id', 'legend')
+        .text("Doping alleged or confirmed")
+        .attr('x', w - 230)
+        .attr('y', h - 400);
+      
+      svg.append('circle')
+        .attr('cx', w - 30)
+        .attr('cy', h - 405)
+        .attr('r', 5)
+        .attr('fill', dopingColor);
+      
+      svg.append('text')
+        .text("No doping alleged")
+        .attr('x', w - 163)
+        .attr('y', h - 380);
+      
+      svg.append('circle')
+        .attr('cx', w - 30)
+        .attr('cy', h - 385)
+        .attr('r', 5)
+        .attr('fill', noDopingColor);
     })
     .catch(error => {
       console.error("There was a problem fetching json data", error);
