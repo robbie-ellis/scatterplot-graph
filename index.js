@@ -32,8 +32,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const h = 600;
       const w = 900;
       const padding = 40;
+      
       const dopingColor = 'red';
       const noDopingColor = 'yellow';
+
+      const toolTipWidth = 150;
+      const toolTipHeight = 40;
       
       const xScale = d3.scaleLinear()
         .domain([d3.min(years, (d) => d - 1), //-1 to keep it from overlapping the axes 
@@ -58,7 +62,10 @@ document.addEventListener("DOMContentLoaded", () => {
         .enter()
         .append('circle')
         .attr('id', (d, i) => i)
-        .attr('class', 'dot');
+        .attr('class', 'dot')
+        .attr('name', (d) => d.Name)
+        .on('mouseover', showToolTip)
+        .on('mouseout', hideToolTip);
         
       circles
         .data(years)
@@ -104,8 +111,7 @@ document.addEventListener("DOMContentLoaded", () => {
         .attr('x', w - 235)
         .attr('y', h - 420)
         .attr('fill', 'aqua')
-        .attr('rx', '10px')
-        .style('box-shadow', '10px 10px 5px 0px rgba(0, 0, 0, 0.5)');
+        .attr('rx', '10px'); 
 
       svg.append('text')
         .attr('id', 'legend')
@@ -129,6 +135,44 @@ document.addEventListener("DOMContentLoaded", () => {
         .attr('cy', h - 385)
         .attr('r', 5)
         .attr('fill', noDopingColor);
+
+
+      let tooltip;
+      let toolTipTextName;
+      let toolTipTextYear;
+
+      function showToolTip() {
+        console.log('Here!')
+        tooltip = svg.append('rect')
+          .attr('id', 'tooltip')
+          .attr('width', toolTipWidth)
+          .attr('height', toolTipHeight)
+          .attr('rx', 10)
+          .style('opacity', 0.7)
+          .attr('fill', 'aqua')
+          .attr('name', d3.select(this).attr('name'))
+          .attr('data-year', d3.select(this).attr('data-xvalue'))
+          .attr('x', d3.select(this).attr('cx') - toolTipWidth / 2)
+          .attr('y', d3.select(this).attr('cy') - toolTipHeight - 10);
+        
+        toolTipTextName = svg
+          .append('text')
+          .text(tooltip.attr('name'))
+          .attr('x', parseInt(tooltip.attr('x')) + 10)
+          .attr('y', parseInt(tooltip.attr('y')) + 15)
+
+        toolTipTextYear = svg
+          .append('text')
+          .text(tooltip.attr('year'))
+          .attr('x', parseInt(tooltip.attr('x')) + 10)
+          .attr('y', parseInt(tooltip.attr('y')) + 35);
+      }
+
+      function hideToolTip() {
+        tooltip.remove();
+        toolTipTextName.remove();
+        toolTipTextYear.remove();
+      }
     })
     .catch(error => {
       console.error("There was a problem fetching json data", error);
