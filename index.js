@@ -13,7 +13,6 @@ document.addEventListener("DOMContentLoaded", () => {
       dataSet.forEach((el, index) => {
         years[index] = el.Year;
       });
-      console.log(years);
 
       let times = [];
       dataSet.forEach((el, index) => {
@@ -56,6 +55,8 @@ document.addEventListener("DOMContentLoaded", () => {
         .style('background', 'linear-gradient(silver, grey)')
         .style('border-radius', '10px')
         .style('box-shadow', '10px 10px 5px 0px rgba(0, 0, 0, 0.5)');
+
+      const svgBBox = svg.node().getBBox();
 
       const circles = svg.selectAll('circle')
         .data(dataSet)
@@ -142,10 +143,9 @@ document.addEventListener("DOMContentLoaded", () => {
       let toolTipTextYear;
 
       function showToolTip() {
-        console.log('Here!')
         tooltip = svg.append('rect')
           .attr('id', 'tooltip')
-          .attr('width', toolTipWidth)
+          //.attr('width', toolTipWidth)
           .attr('height', toolTipHeight)
           .attr('rx', 10)
           .style('opacity', 0.7)
@@ -153,19 +153,40 @@ document.addEventListener("DOMContentLoaded", () => {
           .attr('name', d3.select(this).attr('name'))
           .attr('data-year', d3.select(this).attr('data-xvalue'))
           .attr('x', d3.select(this).attr('cx') - toolTipWidth / 2)
-          .attr('y', d3.select(this).attr('cy') - toolTipHeight - 10);
+          .attr('y', (d) => {
+            if ((d3.select(this).attr('cy') - toolTipHeight - 10) < 0) {
+              return parseInt(d3.select(this).attr('cy')) + 10;
+            } else {
+              return d3.select(this).attr('cy') - toolTipHeight - 10;
+            }
+          });
         
         toolTipTextName = svg
           .append('text')
           .text(tooltip.attr('name'))
-          .attr('x', parseInt(tooltip.attr('x')) + 10)
-          .attr('y', parseInt(tooltip.attr('y')) + 15)
+          .attr('x', d3.select(this).attr('cx') - toolTipWidth / 2 + 10)
+          .attr('y', parseInt(tooltip.attr('y')) + 15);
 
+        console.log(svgBBox.y);  
         toolTipTextYear = svg
           .append('text')
-          .text(tooltip.attr('year'))
-          .attr('x', parseInt(tooltip.attr('x')) + 10)
-          .attr('y', parseInt(tooltip.attr('y')) + 35);
+          .text(tooltip.attr('data-year'))
+          .attr('x', d3.select(this).attr('cx') - toolTipWidth / 2 + 10)
+          .attr('y', (d) => {
+            if (parseInt(tooltip.attr('y')) < 0) {
+              return parseInt(tooltip.attr('y')) + 100;
+            } else {
+              return parseInt(tooltip.attr('y')) + 35;
+            }
+          });  
+          console.log(parseInt(tooltip.attr('y')));
+        
+        const lastCharLocation = 
+          toolTipTextName.node().getStartPositionOfChar(toolTipTextName.text().length - 1);
+        tooltip.attr('width', lastCharLocation.x - tooltip.attr('x') + 15)
+          .attr('x', d3.select(this).attr('cx') - tooltip.attr('width') / 2);
+        
+        console.log(lastCharLocation.x);
       }
 
       function hideToolTip() {
