@@ -13,7 +13,6 @@ document.addEventListener("DOMContentLoaded", () => {
       dataSet.forEach((el, index) => {
         years[index] = el.Year;
       });
-      console.log(years);
 
       let times = [];
       dataSet.forEach((el, index) => {
@@ -33,8 +32,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const w = 900;
       const padding = 40;
       
-      const dopingColor = 'red';
-      const noDopingColor = 'yellow';
+      const dopingColor = '#264253';
+      const noDopingColor = '#e9c46a';
 
       const toolTipWidth = 150;
       const toolTipHeight = 40;
@@ -49,14 +48,16 @@ document.addEventListener("DOMContentLoaded", () => {
           d3.max(times, (d) => d)])
         .range([padding, h - padding]);
       
+      // Creates background svg
       const svg = d3.select('#chart')
         .append('svg')
         .attr('height', h)
         .attr('width', w)
-        .style('background', 'linear-gradient(silver, grey)')
+        .style('background', 'linear-gradient(#2A9D8F, grey)')
         .style('border-radius', '10px')
         .style('box-shadow', '10px 10px 5px 0px rgba(0, 0, 0, 0.5)');
 
+      // Creates dots. Each set of circle method assignments uses a different data set.  
       const circles = svg.selectAll('circle')
         .data(dataSet)
         .enter()
@@ -78,7 +79,6 @@ document.addEventListener("DOMContentLoaded", () => {
         .attr('cy', (d) => yScale(d))
         .attr('r', '5');
       
-      
       circles
         .data(dopings)
         .attr('alleged-doping', (d) => d) // Not necessary but I wanted to associate this data with the circle elements
@@ -90,6 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         });
       
+      //Creates axes
       const xAxis = d3.axisBottom(xScale).tickFormat(d3.format('d'));
       const yAxis = d3.axisLeft(yScale).tickFormat(d3.timeFormat('%M:%S'));
 
@@ -110,7 +111,7 @@ document.addEventListener("DOMContentLoaded", () => {
         .attr('height', 50)
         .attr('x', w - 235)
         .attr('y', h - 420)
-        .attr('fill', 'aqua')
+        .attr('fill', '#9381ff')
         .attr('rx', '10px'); 
 
       svg.append('text')
@@ -136,16 +137,16 @@ document.addEventListener("DOMContentLoaded", () => {
         .attr('r', 5)
         .attr('fill', noDopingColor);
 
-
+      //Creates tooltip
       let tooltip;
       let toolTipTextName;
       let toolTipTextYear;
-
+      
+      //Width attribute is ommitted here so that it can be dynamic based on text content
       function showToolTip() {
-        console.log('Here!')
         tooltip = svg.append('rect')
           .attr('id', 'tooltip')
-          .attr('width', toolTipWidth)
+          //.attr('width', toolTipWidth)
           .attr('height', toolTipHeight)
           .attr('rx', 10)
           .style('opacity', 0.7)
@@ -153,19 +154,51 @@ document.addEventListener("DOMContentLoaded", () => {
           .attr('name', d3.select(this).attr('name'))
           .attr('data-year', d3.select(this).attr('data-xvalue'))
           .attr('x', d3.select(this).attr('cx') - toolTipWidth / 2)
-          .attr('y', d3.select(this).attr('cy') - toolTipHeight - 10);
+          .attr('y', (d) => {
+            if ((d3.select(this).attr('cy') - toolTipHeight - 10) < 0) {
+              return parseInt(d3.select(this).attr('cy')) + 10;
+            } else {
+              return d3.select(this).attr('cy') - toolTipHeight - 10;
+            }
+          });
         
+        /*
+        This has an initial x value so that lastCharLocation can measure the text  
+        to dynamically generate the width of the tooltip rect. This is clunky, and 
+        would be better if the tooltip accessed a <div> because the div would change
+        size based on the text content without any additional programming.  However, 
+        I implemented it this way to satisfy the test requirements of this project
+        (specifically the tests seem to want the tooltip to be generated as an svg 
+        element...I think).
+        */
         toolTipTextName = svg
           .append('text')
           .text(tooltip.attr('name'))
-          .attr('x', parseInt(tooltip.attr('x')) + 10)
-          .attr('y', parseInt(tooltip.attr('y')) + 15)
-
+          .attr('x', d3.select(this).attr('cx') - toolTipWidth / 2 + 10)
+          .attr('y', parseInt(tooltip.attr('y')) + 15);
+ 
+        //This has an initial y value for the reason stated above 
         toolTipTextYear = svg
           .append('text')
-          .text(tooltip.attr('year'))
-          .attr('x', parseInt(tooltip.attr('x')) + 10)
-          .attr('y', parseInt(tooltip.attr('y')) + 35);
+          .text(tooltip.attr('data-year'))
+          .attr('x', d3.select(this).attr('cx') - toolTipWidth / 2 + 10)
+          .attr('y', (d) => {
+            if (parseInt(tooltip.attr('y')) < 0) {
+              return parseInt(tooltip.attr('y')) + 100;
+            } else {
+              return parseInt(tooltip.attr('y')) + 35;
+            }
+          });  
+        
+        //Dynamically sets the width and x value of the tooltip rect
+        const lastCharLocation = 
+          toolTipTextName.node().getStartPositionOfChar(toolTipTextName.text().length - 1);
+        tooltip.attr('width', lastCharLocation.x - tooltip.attr('x') + 15)
+          .attr('x', d3.select(this).attr('cx') - tooltip.attr('width') / 2);
+
+        // Updates the location for x values of the name and year in the tooltip
+        toolTipTextName.attr('x', parseInt(tooltip.attr('x')) + 10);
+        toolTipTextYear.attr('x', parseInt(tooltip.attr('x')) + 10);
       }
 
       function hideToolTip() {
