@@ -107,9 +107,9 @@ document.addEventListener("DOMContentLoaded", () => {
         .attr('color', 'black');
 
       svg.append('rect')
-        .attr('width', 220)
+        .attr('width', 250)
         .attr('height', 50)
-        .attr('x', w - 235)
+        .attr('x', w - 263)
         .attr('y', h - 420)
         .attr('fill', '#9381ff')
         .attr('rx', '10px'); 
@@ -117,7 +117,8 @@ document.addEventListener("DOMContentLoaded", () => {
       svg.append('text')
         .attr('id', 'legend')
         .text("Doping alleged or confirmed")
-        .attr('x', w - 230)
+        .style('font-family', 'system-ui')
+        .attr('x', w - 250)
         .attr('y', h - 400);
       
       svg.append('circle')
@@ -128,7 +129,8 @@ document.addEventListener("DOMContentLoaded", () => {
       
       svg.append('text')
         .text("No doping alleged")
-        .attr('x', w - 163)
+        .style('font-family', 'system-ui')
+        .attr('x', w - 179)
         .attr('y', h - 380);
       
       svg.append('circle')
